@@ -43,6 +43,8 @@ class Listing(db.Model):
         db.ForeignKey('users.username', ondelete='CASCADE'),
     )
 
+    bookings = db.relationship('Booking', order_by='Booking.timestamp.desc()')
+
 
 class User(db.Model):
     """User in the system"""
@@ -75,7 +77,7 @@ class User(db.Model):
         nullable=True,
     )
 
-    #TODO: add link to default image
+    # TODO: add link to default image
     image_url = db.Column(
         db.Text,
         nullable=True,
@@ -85,10 +87,7 @@ class User(db.Model):
 
     listings = db.relationship('Listing', order_by='Listing.id.desc()')
 
-    bookings = db.relationship('Booking', )
-
-    )
-
+    bookings = db.relationship('Booking', order_by="Booking.timestamp.desc()")
 
     @classmethod
     def signup(cls, username, email, password, bio, location, image_url):
@@ -133,6 +132,9 @@ class User(db.Model):
 
         return False
 
+    def __repr__(self):
+        return f"<User #{self.username}: {self.email}>"
+
 
 class Booking(db.Model):
     """Information on one booking"""
@@ -144,7 +146,7 @@ class Booking(db.Model):
         primary_key=True,
     )
 
-    renter_id = db.Column(
+    renter_username = db.Column(
         db.Text,
         db.ForeignKey('users.username', ondelete='CASCADE'),
         nullable=False,
