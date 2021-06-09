@@ -2,7 +2,7 @@
 
 # run tests: python -m unittest test_user_model.py
 
-import os
+# import os
 from unittest import TestCase
 from sqlalchemy.exc import IntegrityError
 from models import db, User, Message, Booking, Listing
@@ -11,9 +11,11 @@ from models import db, User, Message, Booking, Listing
 # to use a different database for tests (we need to do this
 # before we import our app, since that will have already
 # connected to the database
-os.environ['DATABASE_URL'] = "postgresql:///sharebnb-test"
+# os.environ['DATABASE_URL'] = "postgresql:///sharebnb-test"
 
 from app import app
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb-test'
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
@@ -72,8 +74,8 @@ class UserModelTestCase(TestCase):
         db.session.commit()
 
         # User should have no messages, no bookings & no listings
-        # self.assertEqual(len(u.messages_sent), 0)
-        # self.assertEqual(len(u.messages_received), 0)
+        self.assertEqual(len(u.messages_sent), 0)
+        self.assertEqual(len(u.messages_received), 0)
         self.assertEqual(len(u.bookings), 0)
         self.assertEqual(len(u.listings), 0)
 
@@ -85,8 +87,8 @@ class UserModelTestCase(TestCase):
 
     def test_User_signup(self):
         """successfully detects if a unique user can create a new account"""
-        new_user = User.signup(username="testuser", 
-                               email="test@test.com", 
+        new_user = User.signup(username="testuser",
+                               email="test@test.com",
                                password="HASHED_PASSWORD",
                                image_url="",
                                bio="hi",
@@ -107,8 +109,8 @@ class UserModelTestCase(TestCase):
     def test_User_authenticate(self):
         """successfully detects if an exisiting user can log into Sharebnb"""
 
-        User.signup(username="testuser", 
-                    email="test@test.com", 
+        User.signup(username="testuser",
+                    email="test@test.com",
                     password="HASHED_PASSWORD",
                     image_url="",
                     bio="hello",

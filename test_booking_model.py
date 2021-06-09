@@ -1,6 +1,6 @@
 # run tests: python -m unittest test_booking_model.py
 
-import os
+# import os
 from unittest import TestCase
 from datetime import datetime
 from models import db, User, Booking, Listing
@@ -9,9 +9,11 @@ from models import db, User, Booking, Listing
 # to use a different database for tests (we need to do this
 # before we import our app, since that will have already
 # connected to the database
-os.environ['DATABASE_URL'] = "postgresql:///sharebnb-test"
+# os.environ['DATABASE_URL'] = "postgresql:///sharebnb-test"
 
 from app import app
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb-test'
 
 # Create our tables (we do this here, so we only create the tables
 # once for all tests --- in each test, we'll delete the data
