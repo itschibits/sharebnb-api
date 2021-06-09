@@ -1,16 +1,24 @@
 from flask import Flask, request, jsonify
-import json
+from werkzeug.utils import secure_filename
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
+import boto3
 from models import db, connect_db, User, Listing, Booking, Message
+from project_secrets import SECRET_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME
+
 
 CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
+
+client = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['SECRET_KEY'] = "meow"
+app.config['SECRET_KEY'] = SECRET_KEY
+
+S3_LOCATION = f'https://{BUCKET_NAME}.s3.amazonaws.com/'
 
 toolbar = DebugToolbarExtension(app)
 
@@ -60,3 +68,40 @@ def signup():
     print("token============", token)
 
     return jsonify({"token": token}), 201
+
+# ###################################trying to upload files###################
+
+
+def upload_file_s3(file, acl="public-read"):
+    try:
+        client.upload_fileobj(
+            file,
+            BUCKET_NAME,
+            file.filename,
+            ExtraArgs={
+                "ACL": acl,
+                "ContentType": file.content_type
+            }
+        )
+    except Exception as e:
+        print("File upload didn't work", e)
+        return e
+
+    # should return the new img url
+    return "{}{}".format(S3_LOCATION, file.filename)
+
+
+@app.route("/", methods=['POST'])
+def upload_file():
+    if "user_file" not in request.files:
+        return "No user_file key in request.files"
+
+    file = request.files["user_file"]
+
+    if file.filename == "":
+        return "Please select a file"
+
+    file.filename = secure_filename(file.filename)
+    output = upload_file_s3(file)
+
+    return str(output)
