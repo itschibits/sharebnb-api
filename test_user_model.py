@@ -3,9 +3,11 @@
 # run tests: python -m unittest test_user_model.py
 
 # import os
+from typing import List
 from unittest import TestCase
+import jwt
 from sqlalchemy.exc import IntegrityError
-from models import db, User, Message, Booking, Listing
+from models import db, User, Message, Booking, Listing, Listing_Photo
 
 # BEFORE we import our app, let's set an environmental variable
 # to use a different database for tests (we need to do this
@@ -34,6 +36,7 @@ class UserModelTestCase(TestCase):
         Message.query.delete()
         Booking.query.delete()
         Listing.query.delete()
+        Listing_Photo.query.delete()
 
         user1 = User(
             email="testemail@test.com",
@@ -127,3 +130,13 @@ class UserModelTestCase(TestCase):
 
         self.assertTrue(User.authenticate(username="testuser",
                                           password="HASHED_PASSWORD"))
+
+    def test_User_get_token(self):
+        """tests if token is created and returned"""
+
+        token = User.get_token(username="testuser")
+
+        self.assertEqual(jwt.decode(token,
+                                    "meow",
+                                    algorithms=["HS256"]).username,
+                                    "testuser")

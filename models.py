@@ -1,4 +1,7 @@
+import jwt
+# from app import app
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 from flask_bcrypt import Bcrypt
 
@@ -45,6 +48,31 @@ class Listing(db.Model):
 
     bookings = db.relationship('Booking', order_by='Booking.timestamp.desc()')
 
+    photos = db.relationship('Listing_Photo', order_by='Listing_Photo.id')
+
+
+class Listing_Photo(db.Model):
+    """store multiple photos per listing"""
+
+    __tablename__ = 'listing_photos'
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True,
+    )
+
+    listing_id = db.Column(
+        db.Integer,
+        db.ForeignKey('listings.id', ondelete='CASCADE'),
+    )
+
+    image_url = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    listing = db.relationship('Listing')
+
 
 class User(db.Model):
     """User in the system"""
@@ -88,7 +116,7 @@ class User(db.Model):
     messages_sent = db.relationship('Message',
                                     primaryjoin='User.username==Message.from_user_name',
                                     order_by='Message.timestamp.desc()')
-    
+
     messages_received = db.relationship('Message',
                                         primaryjoin='User.username==Message.to_user_name',
                                         order_by='Message.timestamp.desc()')
@@ -96,6 +124,26 @@ class User(db.Model):
     listings = db.relationship('Listing', order_by='Listing.id.desc()')
 
     bookings = db.relationship('Booking', order_by="Booking.timestamp.desc()")
+
+    @classmethod
+    def get_token(username):
+        """
+        Generates the Auth Token
+        :return: string
+        """
+        try:
+            payload = {
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
+                'iat': datetime.datetime.utcnow(),
+                'username': username
+            }
+            return jwt.encode(
+                payload,
+                'meow',
+                algorithm='HS256'
+            )
+        except Exception as e:
+            return e
 
     @classmethod
     def signup(cls, username, email, password, bio, location, image_url):
@@ -106,18 +154,22 @@ class User(db.Model):
 
         hashed_pwd = bcrypt.generate_password_hash(password).decode('UTF-8')
 
-        user = User(
-            username=username,
-            email=email,
-            password=hashed_pwd,
-            bio=bio,
-            location=location,
-            image_url=image_url,
-        )
+        try:
+            user = User(
+                username=username,
+                email=email,
+                password=hashed_pwd,
+                bio=bio,
+                location=location,
+                image_url=image_url,
+            )
 
-        db.session.add(user)
-        # TODO: why not commit here?
-        return user
+            db.session.add(user)
+            # TODO: why not commit here?
+            return user
+
+        except IntegrityError as e:
+            return e
 
     # TODO: find out what cls is and why we need it...
     @classmethod

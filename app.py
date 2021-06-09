@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Listing, Booking, Message
@@ -53,3 +53,7 @@ def signup():
 	#use schema validator and return error if invalid
 
 	new_user = User.signup({signup_data})
+
+	token = User.get_token(new_user.username)
+
+	return {token: token}
