@@ -126,15 +126,15 @@ class User(db.Model):
     bookings = db.relationship('Booking', order_by="Booking.timestamp.desc()")
 
     @classmethod
-    def get_token(username):
+    def get_token(cls, username):
         """
         Generates the Auth Token
         :return: string
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
-                'iat': datetime.datetime.utcnow(),
+                # 'exp': datetime.datetime.utcnow() + datetime.timedelta(days=1, seconds=5),
+                # 'iat': datetime.datetime.utcnow(),
                 'username': username
             }
             return jwt.encode(
@@ -146,7 +146,7 @@ class User(db.Model):
             return e
 
     @classmethod
-    def signup(username, email, password, bio, location, image_url):
+    def signup(cls, username, email, password, bio, location, image_url):
         """Sign up user.
 
         Hashes password and adds user to system.

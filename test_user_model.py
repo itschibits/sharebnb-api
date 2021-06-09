@@ -138,5 +138,5 @@ class UserModelTestCase(TestCase):
 
         self.assertEqual(jwt.decode(token,
                                     "meow",
-                                    algorithms=["HS256"]).username,
+                                    algorithms=["HS256"])["username"],
                                     "testuser")

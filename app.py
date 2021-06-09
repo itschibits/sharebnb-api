@@ -47,12 +47,16 @@ def signup():
     signup_data = request.get_json()
     print("signup_data===========>>>>", signup_data)
     #use schema validator and return error if invalid
-    print("signupdata.username=====>", signup_data.username)
-    new_user = User.signup(signup_data.username,
-                           signup_data.email,
-                           signup_data.password
+    print("signupdata.username=====>", signup_data["username"])
+    new_user = User.signup(signup_data["username"],
+                           signup_data["email"],
+                           signup_data["password"],
+                           signup_data["bio"],
+                           signup_data["location"],
+                           signup_data["image_url"]
                            )
-
+    print("new_user==========", new_user)
     token = User.get_token(new_user.username)
+    print("token============", token)
 
-    return jsonify({token: token}), 201
+    return jsonify({"token": token}), 201
