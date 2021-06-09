@@ -92,6 +92,6 @@ class BookingModelTestCase(TestCase):
 
         self.assertEqual(len(self.user2.bookings), 1)
         self.assertIsInstance(booking, Booking)
-        self.assertEqual(booking.total_price, "40000.00")
-        self.assertEqual(booking.renter, "testuser2")
+        self.assertEqual(booking.total_price, 40000.00)
+        self.assertEqual(booking.renter_username, "testuser2")
         self.assertEqual(booking.listing.id, self.listing1.id)

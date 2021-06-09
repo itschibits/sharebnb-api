@@ -46,8 +46,8 @@ class MessageModelTestCase(TestCase):
         db.session.commit()
 
         message1 = Message(text="test",
-                           to_user=user1.username,
-                           from_user=user2.username)
+                           to_user_name=user1.username,
+                           from_user_name=user2.username)
         db.session.add(message1)
         db.session.commit()
 
@@ -67,11 +67,13 @@ class MessageModelTestCase(TestCase):
     def test_message_model(self):
         """Does basic model work?"""
 
-        message = Message(text="test2", to_user=self.user2.username, from_user=self.user1.username)
+        message2 = Message(text="test2",
+                           to_user_name=self.user2.username,
+                           from_user_name=self.user1.username)
 
-        db.session.add(message)
+        db.session.add(message2)
         db.session.commit()
 
-        self.assertEqual(len(self.user2.messages), 2)
-        self.assertIsInstance(message, Message)
-        self.assertEqual(message.text, "test2")
+        self.assertEqual(len(self.user2.messages_received), 1)
+        self.assertIsInstance(message2, Message)
+        self.assertEqual(message2.text, "test2")

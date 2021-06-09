@@ -49,9 +49,9 @@ class UserModelTestCase(TestCase):
         db.session.commit()
 
         self.user1 = user1
-        self.user1.id = user1.id
+        self.user1.username = user1.username
         self.user2 = user2
-        self.user2.id = user2.id
+        self.user2.username = user2.username
 
         self.client = app.test_client()
 
@@ -72,7 +72,8 @@ class UserModelTestCase(TestCase):
         db.session.commit()
 
         # User should have no messages, no bookings & no listings
-        self.assertEqual(len(u.messages), 0)
+        # self.assertEqual(len(u.messages_sent), 0)
+        # self.assertEqual(len(u.messages_received), 0)
         self.assertEqual(len(u.bookings), 0)
         self.assertEqual(len(u.listings), 0)
 
@@ -87,25 +88,31 @@ class UserModelTestCase(TestCase):
         new_user = User.signup(username="testuser", 
                                email="test@test.com", 
                                password="HASHED_PASSWORD",
-                               image_url="")
+                               image_url="",
+                               bio="hi",
+                               location="Mars")
         db.session.commit()
 
         User.signup(username="testuser",
                     email="test@test.com",
                     password="HASHED_PASSWORD",
-                    image_url="")
+                    image_url="",
+                    bio="hi",
+                    location="Mars")
 
         with self.assertRaises(IntegrityError):
             db.session.commit()
         self.assertIsInstance(new_user, User)
 
     def test_User_authenticate(self):
-        """successfully detects if an exisiting user can log into Warbler"""
+        """successfully detects if an exisiting user can log into Sharebnb"""
 
         User.signup(username="testuser", 
                     email="test@test.com", 
                     password="HASHED_PASSWORD",
-                    image_url="")
+                    image_url="",
+                    bio="hello",
+                    location="Norway")
 
         db.session.commit()
 

@@ -1,4 +1,4 @@
-from flask import Flask, g
+from flask import Flask
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Listing, Booking, Message
@@ -9,12 +9,12 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
+app.config['SECRET_KEY'] = "meow"
 
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
 
-app.config['SECRET_KEY'] = "meow"
 
 ######################################################################
 # User signup/login/logout

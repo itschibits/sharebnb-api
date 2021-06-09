@@ -70,11 +70,13 @@ class User(db.Model):
     bio = db.Column(
         db.Text,
         nullable=True,
+        default="No bio yet"
     )
 
     location = db.Column(
         db.Text,
         nullable=True,
+        default="No location yet"
     )
 
     # TODO: add link to default image
@@ -83,7 +85,13 @@ class User(db.Model):
         nullable=True,
     )
 
-    messages = db.relationship('Message', order_by='Message.timestamp.desc()')
+    messages_sent = db.relationship('Message',
+                                    primaryjoin='User.username==Message.from_user_name',
+                                    order_by='Message.timestamp.desc()')
+    
+    messages_received = db.relationship('Message',
+                                        primaryjoin='User.username==Message.to_user_name',
+                                        order_by='Message.timestamp.desc()')
 
     listings = db.relationship('Listing', order_by='Listing.id.desc()')
 
@@ -205,14 +213,18 @@ class Message(db.Model):
         default=datetime.utcnow,
     )
 
-    to_user = db.Column(
-        db.Integer,
+    to_user_name = db.Column(
+        db.Text,
         db.ForeignKey('users.username', ondelete='CASCADE'),
         nullable=False,
     )
 
-    from_user = db.Column(
-        db.Integer,
+    from_user_name = db.Column(
+        db.Text,
         db.ForeignKey('users.username', ondelete='CASCADE'),
         nullable=False,
     )
+
+    to_user = db.relationship('User', foreign_keys=[to_user_name])
+
+    from_user = db.relationship('User', foreign_keys=[from_user_name])
