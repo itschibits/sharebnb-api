@@ -1,4 +1,5 @@
-from flask import Flask, request
+from flask import Flask, request, jsonify
+import json
 from flask_debugtoolbar import DebugToolbarExtension
 from sqlalchemy.exc import IntegrityError
 from models import db, connect_db, User, Listing, Booking, Message
@@ -22,38 +23,36 @@ connect_db(app)
 """
 1st step: take in form data and hash password
 2nd: try to create new user instance, if fail (duplicate username) return error
-		if success, return username
+        if success, return username
 3rd: take that username and create token and return token to React
 4th:
 
 backend has helper functions:
-	createToken() calls User.authenticate, creates token and returns it
-	User.authenticate() checks the database for a user with this username and password,
-			returns user object (or maybe just True?)
-
-
-
+    createToken() calls User.authenticate, creates token and returns it
+    User.authenticate() checks the database for a user with this username and password,
+            returns user object (or maybe just True?)
 """
-
-
 
 
 @app.route('/signup', methods=["POST"])
 def signup():
-	"""Handle user signup
+    """Handle user signup
 
-	Takes signup form data and creates new user in DB
+    Takes signup form data and creates new user in DB
 
-	returns
+    returns
 
-	If the there already is a user with that username: return error message"""
+    If the there already is a user with that username: return error message"""
 
-	signup_data = request.get_json()
+    signup_data = request.get_json()
+    print("signup_data===========>>>>", signup_data)
+    #use schema validator and return error if invalid
+    print("signupdata.username=====>", signup_data.username)
+    new_user = User.signup(signup_data.username,
+                           signup_data.email,
+                           signup_data.password
+                           )
 
-	#use schema validator and return error if invalid
+    token = User.get_token(new_user.username)
 
-	new_user = User.signup({signup_data})
-
-	token = User.get_token(new_user.username)
-
-	return {token: token}
+    return jsonify({token: token}), 201

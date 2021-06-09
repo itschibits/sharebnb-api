@@ -146,7 +146,7 @@ class User(db.Model):
             return e
 
     @classmethod
-    def signup(cls, username, email, password, bio, location, image_url):
+    def signup(username, email, password, bio, location, image_url):
         """Sign up user.
 
         Hashes password and adds user to system.
