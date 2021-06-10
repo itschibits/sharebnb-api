@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from flask_debugtoolbar import DebugToolbarExtension
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 import boto3
 from models import db, connect_db, User, Listing, Booking, Message
@@ -13,7 +13,11 @@ CURR_USER_KEY = "curr_user"
 app = Flask(__name__)
 CORS(app)
 
-client = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
+client = boto3.client(
+                    's3',
+                    aws_access_key_id=AWS_ACCESS_KEY,
+                    aws_secret_access_key=AWS_SECRET_KEY
+                    )
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -58,12 +62,21 @@ def signup():
     print("signup_data===========>>>>", signup_data)
     #use schema validator and return error if invalid
     print("signupdata.username=====>", signup_data["username"])
+
+    print("request.files==== ", request.files)
+    # if "file" not in request.files:
+    #     return "No file key in request.files"
+
+    photo = signup_data["file"]
+    photo.filename = secure_filename(photo.filename)
+    output = upload_file_s3(photo)
+    # maybe deal with MultiDict??
     new_user = User.signup(signup_data["username"],
                            signup_data["email"],
                            signup_data["password"],
                            signup_data["bio"],
                            signup_data["location"],
-                           signup_data["image_url"]
+                           output
                            )
     print("new_user==========", new_user)
     token = User.get_token(new_user.username)
@@ -94,6 +107,7 @@ def upload_file_s3(file, acl="public-read"):
 
 
 @app.route("/", methods=['POST'])
+@cross_origin()
 def upload_file():
     if "file" not in request.files:
         return "No file key in request.files"
