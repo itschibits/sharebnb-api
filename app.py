@@ -5,6 +5,7 @@ from flask_debugtoolbar import DebugToolbarExtension
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
 import boto3
+import uuid
 from models import db, connect_db, User, Listing, Booking, Message
 from project_secrets import SECRET_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME
 
@@ -73,7 +74,7 @@ def signup():
     if "file" in request.files:
         photo = request.files["file"]
         photo.filename = secure_filename(photo.filename)
-        output = upload_file_s3(photo, signup_data["username"])
+        output = upload_file_s3(photo)
 
     new_user = User.signup(signup_data["username"],
                            signup_data["email"],
@@ -92,12 +93,12 @@ def signup():
 # ###################################trying to upload files###################
 
 
-def upload_file_s3(file, username, acl="public-read"):
+def upload_file_s3(file, acl="public-read"):
     try:
         client.upload_fileobj(
             file,
             BUCKET_NAME,
-            f'{username}_{file.filename}',
+            f'{uuid.uuid4()}_{file.filename}',
             ExtraArgs={
                 "ACL": acl,
                 "ContentType": file.content_type
