@@ -32,46 +32,25 @@ S3_LOCATION = f'https://{BUCKET_NAME}.s3.amazonaws.com/'
 toolbar = DebugToolbarExtension(app)
 
 connect_db(app)
+db.create_all()
 
 
 ######################################################################
 # User signup/login/logout
 
-"""
-1st step: take in form data and hash password
-2nd: try to create new user instance, if fail (duplicate username) return error
-        if success, return username
-3rd: take that username and create token and return token to React
-4th:
-
-backend has helper functions:
-    createToken() calls User.authenticate, creates token and returns it
-    User.authenticate() checks the database for a user with this username and password,
-            returns user object (or maybe just True?)
-"""
-
-
 @app.route('/signup', methods=["POST"])
 @cross_origin()
 def signup():
     """Handle user signup
-
     Takes signup form data and creates new user in DB
-
-    returns
-
-    If the there already is a user with that username: return error message"""
+    returns token or error message"""
 
     output = "no photo"
     if "file" not in request.files:
         print("No file key in request.files")
 
     signup_data = dict(request.form)
-    print("signup_data===========>>>>", signup_data)
     # use schema validator and return error if invalid
-    print("signupdata.username=====>", signup_data["username"])
-
-    print("request.files==== ", request.files)
 
     if "file" in request.files:
         photo = request.files["file"]
@@ -85,10 +64,8 @@ def signup():
                                signup_data["location"],
                                output
                                )
-        print("new_user==========", new_user)
         db.session.commit()
         token = User.get_token(new_user.username)
-        print("token============", token)
         return jsonify({"token": token}), 201
     except IntegrityError:
         # TODO: figure out how to only keep an image on s3 if signup successful
@@ -96,9 +73,25 @@ def signup():
         return jsonify({'error': 'Same user exists'})
 
 
-# ###################################trying to upload files###################
+@app.route('/login', methods=["POST"])
+@cross_origin()
+def login():
+    """Handle user login
+    Takes login form data (username and password)
+    returns token or error message"""
+    login_data = dict(request.form)
+    try:
+        user = User.login(login_data["username"],
+                          login_data["password"])
+        token = User.get_token(user.username)
+        return jsonify({"token": token}), 201
+    except False:
+        return jsonify({'error': 'Login unsuccessful'})
 
 
+# ###################################file upload###################
+
+# TODO: move this to helper file
 def upload_file_s3(file, acl="public-read"):
     try:
         client.upload_fileobj(
@@ -116,20 +109,3 @@ def upload_file_s3(file, acl="public-read"):
 
     # should return the new img url
     return "{}{}".format(S3_LOCATION, file.filename)
-
-
-@app.route("/", methods=['POST'])
-@cross_origin()
-def upload_file():
-    if "file" not in request.files:
-        return "No file key in request.files"
-
-    file = request.files["file"]
-
-    if file.filename == "":
-        return "Please select a file"
-
-    file.filename = secure_filename(file.filename)
-    output = upload_file_s3(file)
-
-    return str(output)
