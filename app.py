@@ -108,7 +108,7 @@ def upload_file_s3(file, acl="public-read"):
 
 
 @app.route("/", methods=['POST'])
-# @cross_origin()
+@cross_origin()
 def upload_file():
     if "file" not in request.files:
         return "No file key in request.files"
