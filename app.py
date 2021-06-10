@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import ImmutableMultiDict
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
@@ -57,8 +58,8 @@ def signup():
     returns
 
     If the there already is a user with that username: return error message"""
-
-    signup_data = request.get_json()
+    photo = request.files["file"]
+    signup_data = dict(request.form)
     print("signup_data===========>>>>", signup_data)
     #use schema validator and return error if invalid
     print("signupdata.username=====>", signup_data["username"])
@@ -67,7 +68,7 @@ def signup():
     # if "file" not in request.files:
     #     return "No file key in request.files"
 
-    photo = signup_data["file"]
+    # photo = signup_data["file"]
     photo.filename = secure_filename(photo.filename)
     output = upload_file_s3(photo)
     # maybe deal with MultiDict??
