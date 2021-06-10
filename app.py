@@ -50,6 +50,7 @@ backend has helper functions:
 
 
 @app.route('/signup', methods=["POST"])
+@cross_origin()
 def signup():
     """Handle user signup
 
@@ -58,20 +59,22 @@ def signup():
     returns
 
     If the there already is a user with that username: return error message"""
-    photo = request.files["file"]
+    output = "no photo"
+    if "file" not in request.files:
+        print("No file key in request.files")
+
+    if "file" in request.files:
+        photo = request.files["file"]
+        photo.filename = secure_filename(photo.filename)
+        output = upload_file_s3(photo)
+    
     signup_data = dict(request.form)
     print("signup_data===========>>>>", signup_data)
-    #use schema validator and return error if invalid
+    # use schema validator and return error if invalid
     print("signupdata.username=====>", signup_data["username"])
 
     print("request.files==== ", request.files)
-    # if "file" not in request.files:
-    #     return "No file key in request.files"
 
-    # photo = signup_data["file"]
-    photo.filename = secure_filename(photo.filename)
-    output = upload_file_s3(photo)
-    # maybe deal with MultiDict??
     new_user = User.signup(signup_data["username"],
                            signup_data["email"],
                            signup_data["password"],
@@ -84,6 +87,7 @@ def signup():
     print("token============", token)
 
     return jsonify({"token": token}), 201
+
 
 # ###################################trying to upload files###################
 
