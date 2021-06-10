@@ -4,6 +4,7 @@ from werkzeug.datastructures import ImmutableMultiDict
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_cors import CORS, cross_origin
 from sqlalchemy.exc import IntegrityError
+# from flask_json_schema import JsonSchema, JsonValidationError
 import boto3
 import uuid
 from models import db, connect_db, User, Listing, Booking, Message
@@ -60,6 +61,7 @@ def signup():
     returns
 
     If the there already is a user with that username: return error message"""
+
     output = "no photo"
     if "file" not in request.files:
         print("No file key in request.files")
@@ -75,19 +77,23 @@ def signup():
         photo = request.files["file"]
         photo.filename = secure_filename(photo.filename)
         output = upload_file_s3(photo)
-
-    new_user = User.signup(signup_data["username"],
-                           signup_data["email"],
-                           signup_data["password"],
-                           signup_data["bio"],
-                           signup_data["location"],
-                           output
-                           )
-    print("new_user==========", new_user)
-    token = User.get_token(new_user.username)
-    print("token============", token)
-
-    return jsonify({"token": token}), 201
+    try:
+        new_user = User.signup(signup_data["username"],
+                               signup_data["email"],
+                               signup_data["password"],
+                               signup_data["bio"],
+                               signup_data["location"],
+                               output
+                               )
+        print("new_user==========", new_user)
+        db.session.commit()
+        token = User.get_token(new_user.username)
+        print("token============", token)
+        return jsonify({"token": token}), 201
+    except IntegrityError:
+        # TODO: figure out how to only keep an image on s3 if signup successful
+        # client.delete_object(Bucket=BUCKET_NAME, Key=output)
+        return jsonify({'error': 'Same user exists'})
 
 
 # ###################################trying to upload files###################

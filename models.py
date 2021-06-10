@@ -193,7 +193,7 @@ class User(db.Model):
         return False
 
     def __repr__(self):
-        return f"<User #{self.username}: {self.email}>"
+        return f'<User #{self.username}: {self.email}>'
 
 
 class Booking(db.Model):
