@@ -63,17 +63,17 @@ def signup():
     if "file" not in request.files:
         print("No file key in request.files")
 
-    if "file" in request.files:
-        photo = request.files["file"]
-        photo.filename = secure_filename(photo.filename)
-        output = upload_file_s3(photo)
-    
     signup_data = dict(request.form)
     print("signup_data===========>>>>", signup_data)
     # use schema validator and return error if invalid
     print("signupdata.username=====>", signup_data["username"])
 
     print("request.files==== ", request.files)
+
+    if "file" in request.files:
+        photo = request.files["file"]
+        photo.filename = secure_filename(photo.filename)
+        output = upload_file_s3(photo, signup_data["username"])
 
     new_user = User.signup(signup_data["username"],
                            signup_data["email"],
@@ -92,12 +92,12 @@ def signup():
 # ###################################trying to upload files###################
 
 
-def upload_file_s3(file, acl="public-read"):
+def upload_file_s3(file, username, acl="public-read"):
     try:
         client.upload_fileobj(
             file,
             BUCKET_NAME,
-            file.filename,
+            f'{username}_{file.filename}',
             ExtraArgs={
                 "ACL": acl,
                 "ContentType": file.content_type
