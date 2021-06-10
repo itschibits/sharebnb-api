@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from flask_debugtoolbar import DebugToolbarExtension
+from flask_cors import CORS
 from sqlalchemy.exc import IntegrityError
 import boto3
 from models import db, connect_db, User, Listing, Booking, Message
@@ -10,6 +11,7 @@ from project_secrets import SECRET_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_N
 CURR_USER_KEY = "curr_user"
 
 app = Flask(__name__)
+CORS(app)
 
 client = boto3.client('s3', aws_access_key_id=AWS_ACCESS_KEY, aws_secret_access_key=AWS_SECRET_KEY)
 
@@ -93,10 +95,10 @@ def upload_file_s3(file, acl="public-read"):
 
 @app.route("/", methods=['POST'])
 def upload_file():
-    if "user_file" not in request.files:
-        return "No user_file key in request.files"
+    if "file" not in request.files:
+        return "No file key in request.files"
 
-    file = request.files["user_file"]
+    file = request.files["file"]
 
     if file.filename == "":
         return "Please select a file"
