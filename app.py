@@ -71,9 +71,10 @@ def login():
     """Handle user login
     Takes login form data (username and password)
     returns token or error message"""
-    login_data = dict(request.form)
-    user = User.authenticate(login_data["username"],
-                             login_data["password"])
+    username = request.form.get("username")
+    password = request.form.get("password")
+    user = User.authenticate(username,
+                             password)
     if user:
         token = User.get_token(user.username)
         return jsonify({"token": token}), 201
@@ -87,9 +88,15 @@ def login():
 @app.route('/listings', methods=["GET"])
 # Gets all listings, TODO: add query params
 def send_listings():
+    """gets all listings from database and returns it"""
     # max_price = request.args.get('max_price') or 0
     # location = request.args.get('location')
 
     listings = Listing.query.all()
 
     return jsonify(json.dumps(listings))
+
+@app.route('/listings/new', methods=["POST"])
+def add_listing():
+    """add a new listing"""
+    
