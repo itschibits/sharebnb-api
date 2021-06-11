@@ -50,6 +50,16 @@ class Listing(db.Model):
 
     photos = db.relationship('Listing_Photo', order_by='Listing_Photo.id')
 
+    def serialize(self):
+        """serialize data"""
+        return {
+            "id": self.id,
+            "price": self.price,
+            "description": self.description,
+            "location": self.location,
+            "owner": self.owner
+        }
+
 
 class Listing_Photo(db.Model):
     """store multiple photos per listing"""
@@ -125,6 +135,7 @@ class User(db.Model):
 
     bookings = db.relationship('Booking', order_by="Booking.timestamp.desc()")
 
+
     @classmethod
     def get_token(cls, username):
         """
@@ -171,7 +182,6 @@ class User(db.Model):
         except IntegrityError as e:
             return e
 
-    # TODO: find out what cls is and why we need it...
     @classmethod
     def authenticate(cls, username, password):
         """Find user with `username` and `password`.

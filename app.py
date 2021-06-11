@@ -3,12 +3,12 @@ from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableMultiDict
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_cors import CORS, cross_origin
+import json
 from sqlalchemy.exc import IntegrityError
 # from flask_json_schema import JsonSchema, JsonValidationError
-import boto3
-import uuid
 from models import db, connect_db, User, Listing, Booking, Message
-from project_secrets import SECRET_KEY, AWS_ACCESS_KEY, AWS_SECRET_KEY, BUCKET_NAME
+from project_secrets import SECRET_KEY
+from aws import upload_file_s3
 
 
 CURR_USER_KEY = "curr_user"
@@ -16,18 +16,10 @@ CURR_USER_KEY = "curr_user"
 app = Flask(__name__)
 CORS(app)
 
-client = boto3.client(
-                    's3',
-                    aws_access_key_id=AWS_ACCESS_KEY,
-                    aws_secret_access_key=AWS_SECRET_KEY
-                    )
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///sharebnb'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SECRET_KEY'] = SECRET_KEY
-
-S3_LOCATION = f'https://{BUCKET_NAME}.s3.amazonaws.com/'
 
 toolbar = DebugToolbarExtension(app)
 
@@ -36,7 +28,7 @@ db.create_all()
 
 
 ######################################################################
-# User signup/login/logout
+# User signup/login endpoints
 
 @app.route('/signup', methods=["POST"])
 @cross_origin()
@@ -80,32 +72,24 @@ def login():
     Takes login form data (username and password)
     returns token or error message"""
     login_data = dict(request.form)
-    try:
-        user = User.login(login_data["username"],
-                          login_data["password"])
+    user = User.authenticate(login_data["username"],
+                             login_data["password"])
+    if user:
         token = User.get_token(user.username)
         return jsonify({"token": token}), 201
-    except False:
-        return jsonify({'error': 'Login unsuccessful'})
+
+    return jsonify({'error': 'Login unsuccessful'})
+
+######################################################################
+# Listing Endpoints
 
 
-# ###################################file upload###################
+@app.route('/listings', methods=["GET"])
+# Gets all listings, TODO: add query params
+def send_listings():
+    # max_price = request.args.get('max_price') or 0
+    # location = request.args.get('location')
 
-# TODO: move this to helper file
-def upload_file_s3(file, acl="public-read"):
-    try:
-        client.upload_fileobj(
-            file,
-            BUCKET_NAME,
-            f'{uuid.uuid4()}_{file.filename}',
-            ExtraArgs={
-                "ACL": acl,
-                "ContentType": file.content_type
-            }
-        )
-    except Exception as e:
-        print("File upload didn't work", e)
-        return e
+    listings = Listing.query.all()
 
-    # should return the new img url
-    return "{}{}".format(S3_LOCATION, file.filename)
+    return jsonify(json.dumps(listings))
