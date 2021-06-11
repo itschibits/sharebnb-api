@@ -13,10 +13,12 @@ S3_LOCATION = f'https://{BUCKET_NAME}.s3.amazonaws.com/'
 
 def upload_file_s3(file, acl="public-read"):
     try:
+        filename = f'{uuid.uuid4()}_{file.filename}'
+
         client.upload_fileobj(
             file,
             BUCKET_NAME,
-            f'{uuid.uuid4()}_{file.filename}',
+            filename,
             ExtraArgs={
                 "ACL": acl,
                 "ContentType": file.content_type
@@ -27,4 +29,4 @@ def upload_file_s3(file, acl="public-read"):
         return e
 
     # returns the new img url
-    return "{}{}".format(S3_LOCATION, file.filename)
+    return "{}{}".format(S3_LOCATION, filename)
