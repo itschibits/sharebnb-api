@@ -92,10 +92,11 @@ def send_listings():
     """gets all listings from database and returns it"""
     # max_price = request.args.get('max_price') or 0
     # location = request.args.get('location')
-
+    print("what is here?----->", Listing.query.all())
     listings = Listing.query.all()
 
-    return jsonify(json.dumps(listings))
+    json_listings = [listing.serialize() for listing in listings]
+    return jsonify(json_listings)
 
 
 @app.route('/listings/new', methods=["POST"])

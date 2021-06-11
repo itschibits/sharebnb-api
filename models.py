@@ -63,7 +63,7 @@ class Listing(db.Model):
             "description": self.description,
             "location": self.location,
             "listing_owner": self.listing_owner,
-            "photos": self.photos[0].serialize(),
+            "photos": [photo.serialize() for photo in self.photos],
         }
 
 
