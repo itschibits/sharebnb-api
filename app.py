@@ -1,3 +1,4 @@
+from datetime import time
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import ImmutableMultiDict
@@ -6,7 +7,7 @@ from flask_cors import CORS, cross_origin
 import json
 from sqlalchemy.exc import IntegrityError
 # from flask_json_schema import JsonSchema, JsonValidationError
-from models import db, connect_db, User, Listing, Booking, Message
+from models import Listing_Photo, db, connect_db, User, Listing, Booking, Message
 from project_secrets import SECRET_KEY
 from aws import upload_file_s3
 
@@ -96,7 +97,34 @@ def send_listings():
 
     return jsonify(json.dumps(listings))
 
+
 @app.route('/listings/new', methods=["POST"])
 def add_listing():
     """add a new listing"""
-    
+
+    listing_data = dict(request.form)
+    photo_data = dict(request.files)
+
+    output = []
+    print("what is dict(request.files) ---------->", photo_data)
+    for photo in photo_data:
+        photo.filename = secure_filename(photo_data[photo].filename)
+        output.append(upload_file_s3(photo))
+
+    new_listing = Listing(price=listing_data["price"],
+                          title=listing_data["title"],
+                          description=listing_data["description"],
+                          location=listing_data["location"],
+                          listing_owner=listing_data["username"])
+
+    db.session.add(new_listing)
+    db.session.commit()
+
+    for url in output:
+        new_photo = Listing_Photo(new_listing.id, url)
+        db.session.add(new_photo)
+    db.session.commit()
+
+    listing_info = Listing.query.get(new_listing.id)
+
+    return jsonify(listing_info.serialize())

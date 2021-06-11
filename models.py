@@ -26,6 +26,11 @@ class Listing(db.Model):
         primary_key=True,
     )
 
+    title = db.Column(
+        db.Text,
+        nullable=False,
+    )
+
     price = db.Column(
         db.Numeric(9, 2),
         nullable=False,
@@ -41,7 +46,7 @@ class Listing(db.Model):
         nullable=False,
     )
 
-    owner = db.Column(
+    listing_owner = db.Column(
         db.Text,
         db.ForeignKey('users.username', ondelete='CASCADE'),
     )
@@ -54,10 +59,11 @@ class Listing(db.Model):
         """serialize data"""
         return {
             "id": self.id,
-            "price": self.price,
+            "price": str(self.price),
             "description": self.description,
             "location": self.location,
-            "owner": self.owner
+            "listing_owner": self.listing_owner,
+            "photos": self.photos,
         }
 
 

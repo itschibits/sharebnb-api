@@ -49,7 +49,7 @@ class ListingModelTestCase(TestCase):
         listing1 = Listing(price="50.00",
                            description="test",
                            location="test",
-                           owner=user1.username)
+                           listing_owner=user1.username)
 
         db.session.add(listing1)
         db.session.commit()
@@ -73,7 +73,7 @@ class ListingModelTestCase(TestCase):
         listing = Listing(price="45.50",
                           description="test2",
                           location="test2",
-                          owner=self.user2.username)
+                          listing_owner=self.user2.username)
 
         db.session.add(listing)
         db.session.commit()
