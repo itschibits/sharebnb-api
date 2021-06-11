@@ -113,7 +113,7 @@ def add_listing():
         photo = request.files["photo"]
         photo.filename = secure_filename(photo.filename)
         output = upload_file_s3(photo)
-
+    print("listing_data[username]======", listing_data["username"])
     new_listing = Listing(price=listing_data["price"],
                           title=listing_data["title"],
                           description=listing_data["description"],
