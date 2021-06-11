@@ -59,6 +59,7 @@ class Listing(db.Model):
         """serialize data, currently assuming only one photo"""
         return {
             "id": self.id,
+            "title": self.title,
             "price": str(self.price),
             "description": self.description,
             "location": self.location,
