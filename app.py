@@ -71,8 +71,8 @@ def login():
     """Handle user login
     Takes login form data (username and password)
     returns token or error message"""
-    username = request.form.get("username")
-    password = request.form.get("password")
+    username = request.json["username"]
+    password = request.json["password"]
     user = User.authenticate(username,
                              password)
     if user:
