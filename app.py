@@ -13,6 +13,7 @@ from aws import upload_file_s3
 
 
 CURR_USER_KEY = "curr_user"
+DEFAULT_PHOTO = "https://i.pinimg.com/474x/c2/69/cb/c269cb7865fc5fec8adb9c38bb432e9e.jpg"
 
 app = Flask(__name__)
 CORS(app)
@@ -38,7 +39,7 @@ def signup():
     Takes signup form data and creates new user in DB
     returns token or error message"""
 
-    output = "no photo"
+    output = DEFAULT_PHOTO
     if "file" not in request.files:
         print("No file key in request.files")
 
@@ -106,7 +107,7 @@ def add_listing():
 
     listing_data = dict(request.form)
 
-    output = "no photo"
+    output = DEFAULT_PHOTO
 
     if "photo" in request.files:
         photo = request.files["photo"]
