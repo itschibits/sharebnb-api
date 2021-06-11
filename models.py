@@ -56,14 +56,14 @@ class Listing(db.Model):
     photos = db.relationship('Listing_Photo', order_by='Listing_Photo.id')
 
     def serialize(self):
-        """serialize data"""
+        """serialize data, currently assuming only one photo"""
         return {
             "id": self.id,
             "price": str(self.price),
             "description": self.description,
             "location": self.location,
             "listing_owner": self.listing_owner,
-            "photos": self.photos,
+            "photos": self.photos[0].serialize(),
         }
 
 
@@ -88,6 +88,14 @@ class Listing_Photo(db.Model):
     )
 
     listing = db.relationship('Listing')
+
+    def serialize(self):
+        """serialize data"""
+        return {
+            "id": self.id,
+            "listing_id": self.listing_id,
+            "image_url": self.image_url,
+        }
 
 
 class User(db.Model):

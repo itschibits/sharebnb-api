@@ -103,13 +103,13 @@ def add_listing():
     """add a new listing"""
 
     listing_data = dict(request.form)
-    photo_data = dict(request.files)
 
-    output = []
-    print("what is dict(request.files) ---------->", photo_data)
-    for photo in photo_data:
-        photo.filename = secure_filename(photo_data[photo].filename)
-        output.append(upload_file_s3(photo))
+    output = "no photo"
+
+    if "photo" in request.files:
+        photo = request.files["photo"]
+        photo.filename = secure_filename(photo.filename)
+        output = upload_file_s3(photo)
 
     new_listing = Listing(price=listing_data["price"],
                           title=listing_data["title"],
@@ -120,9 +120,10 @@ def add_listing():
     db.session.add(new_listing)
     db.session.commit()
 
-    for url in output:
-        new_photo = Listing_Photo(new_listing.id, url)
-        db.session.add(new_photo)
+    new_photo = Listing_Photo(listing_id=new_listing.id,
+                              image_url=output)
+
+    db.session.add(new_photo)
     db.session.commit()
 
     listing_info = Listing.query.get(new_listing.id)
