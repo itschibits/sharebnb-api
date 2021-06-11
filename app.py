@@ -99,6 +99,7 @@ def send_listings():
 
 
 @app.route('/listings/new', methods=["POST"])
+@cross_origin()
 def add_listing():
     """add a new listing"""
 
